@@ -47,20 +47,15 @@ st.write("Enter the details below to predict traffic conditions.")
 # -------------------------------
 # Input Fields (EDIT based on your model features)
 # -------------------------------
-col1, col2, col3 = st.columns(3)
+col1, col2 = st.columns(2)
 
 with col1:
-    hour = st.number_input("Hour of the Day (0–23)", min_value=0, max_value=23, step=1)
-    day = st.number_input("Day of Week (1–7)", min_value=1, max_value=7, step=1)
+    coded_day = st.number_input("Coded Day (0–6)", min_value=0, max_value=6)
+    zone = st.number_input("Zone (numeric encoded)")
 
 with col2:
+    weather = st.number_input("Weather (encoded)")
     temperature = st.number_input("Temperature (°C)")
-    rain = st.number_input("Rain (mm)")
-
-with col3:
-    humidity = st.number_input("Humidity (%)")
-    wind_speed = st.number_input("Wind Speed")
-
 # -------------------------------
 # Prediction
 # -------------------------------
@@ -69,19 +64,15 @@ traffic_result = ""
 if st.button("Predict Traffic"):
 
     user_input = [
-        hour, day, temperature,
-        rain, humidity, wind_speed
+        coded_day,
+        zone,
+        weather,
+        temperature
     ]
 
     try:
-        prediction = Traffic_model.predict([user_input])
-
-        if prediction[0] == 0:
-            st.success("🚗 Low Traffic")
-        elif prediction[0] == 1:
-            st.success("🚙 Medium Traffic")
-        else:
-            st.success("🚕 High Traffic")
+        prediction = traffic_model.predict([user_input])
+        st.success(f"Traffic Prediction: {prediction[0]}")
 
     except Exception as e:
         st.error(f"Error: {e}")
