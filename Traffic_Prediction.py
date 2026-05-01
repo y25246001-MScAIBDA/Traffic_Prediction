@@ -71,7 +71,7 @@ if st.button("Predict Traffic"):
     ]
 
     try:
-        prediction = traffic_model.predict([user_input])[0]
+        prediction = Traffic_model.predict([user_input])[0]
 
         # 🔥 Convert numeric output to traffic level
         if prediction < 2:
