@@ -71,8 +71,18 @@ if st.button("Predict Traffic"):
     ]
 
     try:
-        prediction = Traffic_model.predict([user_input])
-        st.success(f"Traffic Prediction: {prediction[0]}")
+        prediction = traffic_model.predict([user_input])[0]
+
+        # 🔥 Convert numeric output to traffic level
+        if prediction < 2:
+            result = "🚗 Low Traffic"
+        elif prediction < 4:
+            result = "🚙 Medium Traffic"
+        else:
+            result = "🚕 High Traffic"
+
+        st.success(f"Traffic Prediction: {result}")
+        st.info(f"Raw Value: {round(prediction, 2)}")
 
     except Exception as e:
         st.error(f"Error: {e}")
