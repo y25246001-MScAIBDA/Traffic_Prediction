@@ -25,7 +25,7 @@ st.set_page_config(
 # -------------------------------
 # Load Model
 # -------------------------------
-traffic_model = pickle.load(open('Traffic_model.sav', 'rb'))
+Traffic_model = pickle.load(open('Traffic_model.sav', 'rb'))
 
 # -------------------------------
 # Validation Function
