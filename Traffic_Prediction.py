@@ -50,16 +50,16 @@ st.write("Enter the details below to predict traffic conditions.")
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    hour = st.text_input("Hour of the Day (0–23)")
-    day = st.text_input("Day of Week (1–7)")
+    hour = st.number_input("Hour of the Day (0–23)", min_value=0, max_value=23, step=1)
+    day = st.number_input("Day of Week (1–7)", min_value=1, max_value=7, step=1)
 
 with col2:
-    temperature = st.text_input("Temperature (°C)")
-    rain = st.text_input("Rain (mm)")
+    temperature = st.number_input("Temperature (°C)")
+    rain = st.number_input("Rain (mm)")
 
 with col3:
-    humidity = st.text_input("Humidity (%)")
-    wind_speed = st.text_input("Wind Speed")
+    humidity = st.number_input("Humidity (%)")
+    wind_speed = st.number_input("Wind Speed")
 
 # -------------------------------
 # Prediction
@@ -73,23 +73,18 @@ if st.button("Predict Traffic"):
         rain, humidity, wind_speed
     ]
 
-    if check_empty_fields(user_input):
+    try:
+        prediction = traffic_model.predict([user_input])
 
-        try:
-            user_input = [float(x) for x in user_input]
+        if prediction[0] == 0:
+            st.success("🚗 Low Traffic")
+        elif prediction[0] == 1:
+            st.success("🚙 Medium Traffic")
+        else:
+            st.success("🚕 High Traffic")
 
-            prediction = Traffic_model.predict([user_input])
-
-            # Modify output based on your modelS
-            if prediction[0] == 0:
-                traffic_result = "🚗 Low Traffic"
-            elif prediction[0] == 1:
-                traffic_result = "🚙 Medium Traffic"
-            else:
-                traffic_result = "🚕 High Traffic"
-
-        except:
-            st.error("⚠️ Invalid input format. Please enter numeric values.")
+    except Exception as e:
+        st.error(f"Error: {e}")
 
 # -------------------------------
 # Output
