@@ -74,7 +74,7 @@ if st.button("Predict Traffic"):
     ]
 
     try:
-        prediction = traffic_model.predict([user_input])
+        prediction = Traffic_model.predict([user_input])
 
         if prediction[0] == 0:
             st.success("🚗 Low Traffic")
