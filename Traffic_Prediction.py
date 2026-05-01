@@ -71,7 +71,7 @@ if st.button("Predict Traffic"):
     ]
 
     try:
-        prediction = traffic_model.predict([user_input])
+        prediction = Traffic_model.predict([user_input])
         st.success(f"Traffic Prediction: {prediction[0]}")
 
     except Exception as e:
