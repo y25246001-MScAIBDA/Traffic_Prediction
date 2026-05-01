@@ -18,6 +18,15 @@ st.set_page_config(
 # -------------------------------
 # Load Model + Encoder
 # -------------------------------
+
+import gdown
+
+url = "https://drive.google.com/file/d/1zQVWOdWW-jyx_F3LSkvcEn8FBZvhSi8F/view?usp=sharing"
+output = "traffic_model.sav"
+
+gdown.download(url, output, quiet=False)
+
+
 traffic_model = pickle.load(open('traffic_model.sav', 'rb'))
 weather_encoder = pickle.load(open('weather_encoder.sav', 'rb'))
 
