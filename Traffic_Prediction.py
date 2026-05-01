@@ -7,7 +7,7 @@ Created on Fri May  1 14:30:26 2026
 
 # -*- coding: utf-8 -*-
 """
-Traffic Prediction My App
+Traffic Prediction App
 """
 
 import pickle
