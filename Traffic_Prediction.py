@@ -7,7 +7,7 @@ Created on Fri May  1 14:30:26 2026
 
 # -*- coding: utf-8 -*-
 """
-Traffic Prediction App
+Traffic Prediction App 
 """
 
 import pickle
@@ -25,55 +25,77 @@ st.set_page_config(
 # -------------------------------
 # Load Model
 # -------------------------------
-Traffic_model = pickle.load(open('Traffic_model.sav', 'rb'))
-
-# -------------------------------
-# Validation Function
-# -------------------------------
-def check_empty_fields(input_list):
-    for value in input_list:
-        if str(value).strip() == "":
-            st.error("⚠️ Please fill all input values.")
-            return False
-    return True
+traffic_model = pickle.load(open('traffic_model.sav', 'rb'))
 
 # -------------------------------
 # Title
 # -------------------------------
 st.title("🚦 Traffic Prediction using Machine Learning")
-
-st.write("Enter the details below to predict traffic conditions.")
+st.markdown("### Enter details to predict traffic conditions")
 
 # -------------------------------
-# Input Fields (EDIT based on your model features)
+# Input Section
 # -------------------------------
+st.subheader("📊 Traffic Inputs")
+
 col1, col2 = st.columns(2)
 
+# Day selection
 with col1:
-    coded_day = st.number_input("Coded Day (0–6)", min_value=0, max_value=6)
-    zone = st.number_input("Zone (numeric encoded)")
+    day = st.selectbox("Select Day", 
+                       ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"])
 
+# Zone selection
 with col2:
-    weather = st.number_input("Weather (encoded)")
-    temperature = st.number_input("Temperature (°C)")
+    zone = st.selectbox("Select Zone", 
+                        ["Zone A","Zone B","Zone C"])
+
+# Weather selection
+with col1:
+    weather = st.selectbox("Weather Condition", 
+                           ["Clear","Rain","Snow"])
+
+# Temperature
+with col2:
+    temperature = st.slider("Temperature (°C)", -10, 50, 25)
+
+# -------------------------------
+# Encoding (VERY IMPORTANT)
+# -------------------------------
+
+day_map = {
+    "Monday":0, "Tuesday":1, "Wednesday":2,
+    "Thursday":3, "Friday":4, "Saturday":5, "Sunday":6
+}
+
+zone_map = {
+    "Zone A":0, "Zone B":1, "Zone C":2
+}
+
+weather_map = {
+    "Clear":0, "Rain":1, "Snow":2
+}
+
+coded_day = day_map[day]
+zone = zone_map[zone]
+weather = weather_map[weather]
+
 # -------------------------------
 # Prediction
 # -------------------------------
-traffic_result = ""
-
-if st.button("Predict Traffic"):
-
-    user_input = [
-        coded_day,
-        zone,
-        weather,
-        temperature
-    ]
+if st.button("🚦 Predict Traffic"):
 
     try:
-        prediction = Traffic_model.predict([user_input])[0]
+        user_input = [
+            coded_day,
+            zone,
+            weather,
+            temperature
+        ]
 
-        # 🔥 Convert numeric output to traffic level
+        prediction = traffic_model.predict([user_input])[0]
+
+        # Convert numeric output → category
         if prediction < 2:
             result = "🚗 Low Traffic"
         elif prediction < 4:
@@ -81,13 +103,24 @@ if st.button("Predict Traffic"):
         else:
             result = "🚕 High Traffic"
 
-        st.success(f"Traffic Prediction: {result}")
-        st.info(f"Raw Value: {round(prediction, 2)}")
+        # Output
+        st.success(f"{result}")
+        st.info(f"Prediction Value: {round(prediction,2)}")
 
     except Exception as e:
         st.error(f"Error: {e}")
 
 # -------------------------------
-# Output
+# Info Section
 # -------------------------------
-st.success(traffic_result)
+st.markdown("""
+---
+### ℹ️ About Model
+This ML model predicts traffic based on:
+- Day of the week  
+- Zone  
+- Weather condition  
+- Temperature  
+
+Built using Support Vector Regression (SVR)
+""")
