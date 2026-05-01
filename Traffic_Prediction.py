@@ -78,9 +78,9 @@ if st.button("Predict Traffic"):
         try:
             user_input = [float(x) for x in user_input]
 
-            prediction = traffic_model.predict([user_input])
+            prediction = Traffic_model.predict([user_input])
 
-            # Modify output based on your model
+            # Modify output based on your modelS
             if prediction[0] == 0:
                 traffic_result = "🚗 Low Traffic"
             elif prediction[0] == 1:
