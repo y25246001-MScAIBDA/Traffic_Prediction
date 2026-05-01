@@ -6,8 +6,9 @@ Created on Fri May  1 14:30:26 2026
 """
 
 # -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
-Traffic Prediction App
+Traffic Prediction Streamlit App (Final Version)
 """
 
 import pickle
@@ -28,70 +29,101 @@ st.set_page_config(
 traffic_model = pickle.load(open('Traffic_model.sav', 'rb'))
 
 # -------------------------------
-# Validation Function
-# -------------------------------
-def check_empty_fields(input_list):
-    for value in input_list:
-        if str(value).strip() == "":
-            st.error("⚠️ Please fill all input values.")
-            return False
-    return True
-
-# -------------------------------
 # Title
 # -------------------------------
 st.title("🚦 Traffic Prediction using Machine Learning")
-
-st.write("Enter the details below to predict traffic conditions.")
+st.markdown("### Enter details to predict traffic conditions")
 
 # -------------------------------
-# Input Fields (EDIT based on your model features)
+# Input Section
 # -------------------------------
-col1, col2, col3 = st.columns(3)
+st.subheader("📊 Traffic Inputs")
 
+col1, col2 = st.columns(2)
+
+# Day selection
 with col1:
-    hour = st.text_input("Hour of the Day (0–23)")
-    day = st.text_input("Day of Week (1–7)")
+    day = st.selectbox("Select Day", 
+                       ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"])
 
+# Zone selection
 with col2:
-    temperature = st.text_input("Temperature (°C)")
-    rain = st.text_input("Rain (mm)")
+    zone = st.selectbox("Select Zone", 
+                        ["Zone A","Zone B","Zone C"])
 
-with col3:
-    humidity = st.text_input("Humidity (%)")
-    wind_speed = st.text_input("Wind Speed")
+# Weather selection
+with col1:
+    weather = st.selectbox("Weather Condition", 
+                           ["Clear","Rain","Snow"])
+
+# Temperature
+with col2:
+    temperature = st.slider("Temperature (°C)", -10, 50, 25)
+
+# -------------------------------
+# Encoding (VERY IMPORTANT)
+# -------------------------------
+
+day_map = {
+    "Monday":0, "Tuesday":1, "Wednesday":2,
+    "Thursday":3, "Friday":4, "Saturday":5, "Sunday":6
+}
+
+zone_map = {
+    "Zone A":0, "Zone B":1, "Zone C":2
+}
+
+weather_map = {
+    "Clear":0, "Rain":1, "Snow":2
+}
+
+coded_day = day_map[day]
+zone = zone_map[zone]
+weather = weather_map[weather]
 
 # -------------------------------
 # Prediction
 # -------------------------------
-traffic_result = ""
+if st.button("🚦 Predict Traffic"):
 
-if st.button("Predict Traffic"):
+    try:
+        user_input = [
+            coded_day,
+            zone,
+            weather,
+            temperature
+        ]
 
-    user_input = [
-        hour, day, temperature,
-        rain, humidity, wind_speed
-    ]
+        prediction = traffic_model.predict([user_input])[0]
 
-    if check_empty_fields(user_input):
+        # Convert numeric output → category
+        if prediction < 2:
+            result = "🚗 Low Traffic"
+        elif prediction < 4:
+            result = "🚙 Medium Traffic"
+        else:
+            result = "🚕 High Traffic"
 
-        try:
-            user_input = [float(x) for x in user_input]
+        # Output
+        st.success(f"{result}")
+        st.info(f"Prediction Value: {round(prediction,2)}")
 
-            prediction = traffic_model.predict([user_input])
-
-            # Modify output based on your model
-            if prediction[0] == 0:
-                traffic_result = "🚗 Low Traffic"
-            elif prediction[0] == 1:
-                traffic_result = "🚙 Medium Traffic"
-            else:
-                traffic_result = "🚕 High Traffic"
-
-        except:
-            st.error("⚠️ Invalid input format. Please enter numeric values.")
+    except Exception as e:
+        st.error(f"Error: {e}")
 
 # -------------------------------
-# Output
+# Info Section
+# -------------------------------
+st.markdown("""
+---
+### ℹ️ About Model
+This ML model predicts traffic based on:
+- Day of the week  
+- Zone  
+- Weather condition  
+- Temperature  
+
+Built using Support Vector Regression (SVR)
+""")
 # -------------------------------
 st.success(traffic_result)
