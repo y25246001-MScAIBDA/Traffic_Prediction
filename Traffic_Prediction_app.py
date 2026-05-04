@@ -1,117 +1,117 @@
 # -*- coding: utf-8 -*-
 """
-Smart Traffic Prediction System - Advanced Streamlit Dashboard
+Created on Mon May  4 18:18:35 2026
+
+@author: asusl
 """
 
-import streamlit as st
+# -*- coding: utf-8 -*-
+"""
+Traffic Prediction Streamlit App (Final - Correct Version)
+"""
+
 import pickle
-import pandas as pd
-import numpy as np
-import datetime
+import streamlit as st
 
 # -------------------------------
 # Page Config
 # -------------------------------
 st.set_page_config(
-    page_title="Smart Traffic Prediction System",
+    page_title="Traffic Prediction System",
     layout="wide",
     page_icon="🚦"
 )
 
 # -------------------------------
-# Load Model
+# Load Model + Encoder
 # -------------------------------
-model = pickle.load(open("traffic_model.sav", "rb"))
-encoder = pickle.load(open("weather_encoder.sav", "rb"))
 
-# -------------------------------
-# Sidebar
-# -------------------------------
-st.sidebar.title("🚦 Smart Traffic")
-menu = st.sidebar.radio("Navigation", ["Home", "Predict Traffic", "About"])
+import gdown
 
-# -------------------------------
-# HOME PAGE
-# -------------------------------
-if menu == "Home":
+url = "https://drive.google.com/file/d/1zQVWOdWW-jyx_F3LSkvcEn8FBZvhSi8F/view?usp=sharing"
+output = "traffic_model.sav"
 
-    st.title("🚦 Smart Traffic Prediction System")
-    st.markdown("Real-time traffic insights and machine learning predictions")
+gdown.download(url, output, quiet=False)
 
-    col1, col2, col3, col4 = st.columns(4)
 
-    # Fake dynamic data (for dashboard look)
-    col1.metric("Current Traffic", "LOW", "↓")
-    col2.metric("Avg Traffic Score", "2.3 / 5")
-    col3.metric("Vehicles on Road", "2,814", "+120")
-    col4.metric("Peak Hour", "5 PM - 7 PM")
-
-    st.markdown("---")
-
-    # Traffic Trend Chart
-    st.subheader("📈 Traffic Trend (Today)")
-
-    hours = list(range(24))
-    traffic_values = [np.sin(h/3)+2 for h in hours]
-
-    df = pd.DataFrame({
-        "Hour": hours,
-        "Traffic": traffic_values
-    })
-
-    st.line_chart(df.set_index("Hour"))
-
-    # Pie Chart
-    st.subheader("📊 Traffic Distribution")
-
-    pie_data = pd.DataFrame({
-        "Zone": ["Zone A", "Zone B", "Zone C"],
-        "Traffic": [38, 36, 26]
-    })
-
-    st.bar_chart(pie_data.set_index("Zone"))
-
-    st.success("✅ System running successfully")
+traffic_model = pickle.load(open('traffic_model.sav', 'rb'))
+weather_encoder = pickle.load(open('weather_encoder.sav', 'rb'))
 
 # -------------------------------
-# PREDICTION PAGE
+# Title
 # -------------------------------
-elif menu == "Predict Traffic":
+st.title("🚦 Traffic Prediction using Machine Learning")
+st.markdown("### Enter details to predict traffic conditions")
 
-    st.title("🚦 Predict Traffic")
+# -------------------------------
+# Input Section
+# -------------------------------
+st.subheader("📊 Traffic Inputs")
 
-    col1, col2 = st.columns(2)
+col1, col2 = st.columns(2)
 
-    # Inputs
-    with col1:
-        day = st.selectbox("Day",
-                           ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"])
+# Day selection
+with col1:
+    day = st.selectbox(
+        "Select Day",
+        ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"]
+    )
 
-        hour = st.slider("Hour", 0, 23, 12)
+# Hour selection (IMPORTANT 🔥)
+with col2:
+    hour = st.slider("Select Hour (0–23)", 0, 23, 12)
 
-        weather = st.selectbox("Weather",
-                               ["Clear","Clouds","Rain","Snow","Mist","Fog"])
+# Weather selection
+with col1:
+    weather = st.selectbox(
+        "Weather Condition",
+        ["Clear","Clouds","Rain","Snow","Mist","Fog"]
+    )
 
-    with col2:
-        temperature = st.slider("Temperature (°C)", -10, 50, 25)
-        rain = st.slider("Rain (mm)", 0.0, 20.0, 0.0)
-        snow = st.slider("Snow (mm)", 0.0, 20.0, 0.0)
-        holiday = st.selectbox("Holiday", ["No","Yes"])
+# Temperature
+with col2:
+    temperature = st.slider("Temperature (°C)", -10, 50, 25)
 
-    # Encoding
-    day_map = {
-        "Monday":0,"Tuesday":1,"Wednesday":2,
-        "Thursday":3,"Friday":4,"Saturday":5,"Sunday":6
-    }
+# Rain & Snow
+with col1:
+    rain = st.slider("Rain (mm)", 0.0, 20.0, 0.0)
 
-    day_encoded = day_map[day]
-    holiday_encoded = 1 if holiday == "Yes" else 0
-    weather_encoded = encoder.transform([weather])[0]
+with col2:
+    snow = st.slider("Snow (mm)", 0.0, 20.0, 0.0)
 
-    # Prediction
-    if st.button("🚦 Predict Traffic"):
+# Holiday
+is_holiday = st.selectbox("Is Holiday?", ["No", "Yes"])
 
-        input_data = [[
+# -------------------------------
+# Encoding
+# -------------------------------
+
+# Day encoding
+day_map = {
+    "Monday":0, "Tuesday":1, "Wednesday":2,
+    "Thursday":3, "Friday":4, "Saturday":5, "Sunday":6
+}
+
+day_encoded = day_map[day]
+
+# Holiday encoding
+holiday_encoded = 1 if is_holiday == "Yes" else 0
+
+# Weather encoding (from trained encoder)
+try:
+    weather_encoded = weather_encoder.transform([weather])[0]
+except:
+    st.error("⚠️ Weather value not recognized by model.")
+    weather_encoded = 0
+
+# -------------------------------
+# Prediction
+# -------------------------------
+if st.button("🚦 Predict Traffic"):
+
+    try:
+        # IMPORTANT: Must match training features EXACTLY
+        user_input = [
             hour,
             day_encoded,
             holiday_encoded,
@@ -119,45 +119,39 @@ elif menu == "Predict Traffic":
             rain,
             snow,
             weather_encoded
-        ]]
+        ]
 
-        prediction = model.predict(input_data)[0]
+        prediction = traffic_model.predict([user_input])[0]
 
+        # Convert to readable result
         if prediction == 0:
-            st.success("🚗 Low Traffic")
+            result = "🚗 Low Traffic"
         elif prediction == 1:
-            st.warning("🚙 Medium Traffic")
+            result = "🚙 Medium Traffic"
         else:
-            st.error("🚕 High Traffic")
+            result = "🚕 High Traffic"
+
+        # Output
+        st.success(result)
+
+    except Exception as e:
+        st.error(f"Error: {e}")
 
 # -------------------------------
-# ABOUT PAGE
+# Info Section
 # -------------------------------
-else:
+st.markdown("""
+---
+### ℹ️ About Model
+This model predicts traffic using:
 
-    st.title("📘 About System")
+- Hour of the day ⏰  
+- Day of week 📅  
+- Holiday 🎉  
+- Weather 🌦️  
+- Temperature 🌡️  
+- Rain & Snow 🌧️  
 
-    st.markdown("""
-### 🚦 Smart Traffic Prediction System
-
-This project uses Machine Learning to predict traffic conditions based on:
-
-- Time (Hour, Day)
-- Weather conditions
-- Temperature
-- Rain and Snow
-- Holiday data
-
-### ⚙️ Model Used:
-- Random Forest Classifier
-
-### 🎯 Output:
-- Low Traffic
-- Medium Traffic
-- High Traffic
-
-### 🚀 Built With:
-- Python
-- Streamlit
-- Scikit-learn
+Model: RandomForestClassifier  
+Output: Low / Medium / High Traffic
 """)
